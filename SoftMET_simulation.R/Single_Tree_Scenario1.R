@@ -47,12 +47,12 @@ SoftTree_Estimator <- function(d, n_leaves = 4, niter = 10) {
   yhT <- mean(d$Y) # Initial tree prediction
   
   for (i in 1:niter) {
-    # Step 1 & 2: Estimate Mixed Model (lmer)
+    #  Estimate Mixed Model (lmer)
     d$Y_resid <- d$Y - yhT
     mod_lmm <- lmer(Y_resid ~ X1 + X2 + Z1 + Z2 + (1|gr), data = d, REML = FALSE)
     yhL <- fitted(mod_lmm)
     
-    # Step 3: Update Tree Theta
+    # Update Tree Theta
     tr <- upd_tree(d$Y - yhL, H, th, n_leaves)
     th <- tr$th
     yhT <- tr$pi %*% tr$mu
