@@ -1,6 +1,6 @@
 library(lme4)
 
-# Softmax function with max-subtraction trick for stability
+# Softmax function 
 get_pi <- function(H, th) {
   sc <- as.matrix(H) %*% t(th)
   sc <- sc - apply(sc, 1, max) # Subtract max to avoid exp overflow
@@ -8,7 +8,7 @@ get_pi <- function(H, th) {
   return(exp_h / rowSums(exp_h))
 }
 
-# Update routing parameters theta using BFGS
+# Update theta using BFGS
 upd_tree <- function(Y, H, th, n_l) {
   p_ncol <- ncol(H)
   
@@ -75,9 +75,9 @@ softmet_estimate <- function(d, n_leaves = 4, niter = 5) {
   return(list(base = m_base, soft = m_soft))
 }
 
-# Execution and Model Comparison 
+#  Model Comparison 
 my_data <- gen_data()
 res <- softmet_estimate(my_data)
 
-# Final model comparison via ANOVA
+#  ANOVA
 anova(res$base, res$soft)
