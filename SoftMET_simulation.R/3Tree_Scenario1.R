@@ -192,7 +192,7 @@ softmet_3trees <- function(Y, X, gr, covLin=NULL, covT1=NULL, covT2=NULL, covT3=
   return(myris)
 }
 
-# --- Run simulation and test ---
+# simulation and test 
 sim_data <- gen_data()
 
 Y_val <- sim_data$Y
