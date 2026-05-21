@@ -103,7 +103,7 @@ softmet_3trees <- function(d, n_leaves = 4, niter = 5) {
   return(list(base = m_base, soft = m_soft))
 }
 
-# --- Run simulation and test ---
+#  Run simulation and test 
 my_data <- gen_data()
 res <- softmet_3trees(my_data)
 
