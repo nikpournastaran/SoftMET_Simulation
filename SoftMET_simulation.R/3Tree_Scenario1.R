@@ -1,6 +1,6 @@
 library(lme4)
 
-# Softmax with max subtraction trick for stability
+# Softmax 
 get_pi <- function(H, th) {
   sc <- as.matrix(H) %*% t(th)
   sc <- sc - apply(sc, 1, max) # avoid overflow
@@ -12,7 +12,7 @@ get_pi <- function(H, th) {
 upd_tree <- function(Y, H, th, n_l) {
   p_ncol <- ncol(H)
   
-  # Drop first column to fix collinearity (prof's identifiability rule)
+  # Drop first column to fix collinearity 
   get_mu <- function(p) { 
     m <- coef(lm(Y ~ p[, -1, drop = FALSE]))
     m[is.na(m)] <- 0
@@ -54,7 +54,7 @@ softmet_3trees <- function(d, n_leaves = 4, niter = 5) {
   # Initial tree predictions divided by 3 like the prof's code
   yhT1 <- yhT2 <- yhT3 <- mean(d$Y) / 3
   
-  # --- Stage 1: Backfitting loop ---
+  # Stage 1: Backfitting loop 
   for (i in 1:niter) {
     # Update linear part via lmer
     d$Y_resid <- d$Y - (yhT1 + yhT2 + yhT3)
@@ -79,7 +79,7 @@ softmet_3trees <- function(d, n_leaves = 4, niter = 5) {
     yhT3 <- predict(lm(Y_p3 ~ tr3$pi[, -1, drop = FALSE]))
   }
   
-  # --- Stage 2: Final inference (Algorithm 1) ---
+  #  Stage 2: Final inference (Algorithm 1)
   # Get bases and drop first column for all 3 trees
   Phi1 <- as.data.frame(get_pi(H, th1)[, -1, drop = FALSE])
   Phi2 <- as.data.frame(get_pi(H, th2)[, -1, drop = FALSE])
