@@ -90,14 +90,29 @@ softmet_3trees <- function(d, n_leaves = 4, niter = 5) {
 
 
 
-# 1. Single Run ANOVA
-cat("\n--- Single Run ANOVA Comparison ---\n")
+# 1. Single Run ANOVA Comparison
+cat("\n--- Single Run ANOVA Detailed Comparison ---\n")
 results_anova <- lapply(1:3, function(sc) {
+  # Generate data and fit models for one realization
   fit <- softmet_3trees(gen_data(scenario = sc))
   res <- anova(fit$base, fit$soft)
-  data.frame(Scenario=sc, AIC_Base=res$AIC[1], AIC_Soft=res$AIC[2], P_Val=format.pval(res$`Pr(>Chisq)`[2], eps=0.001))
+  
+  # Extracting full metrics
+  data.frame(
+    Scenario = sc,
+    AIC_Base = round(res$AIC[1], 2),
+    AIC_Soft = round(res$AIC[2], 2),
+    BIC_Soft = round(res$BIC[2], 2),       
+    LogLik_Soft = round(res$logLik[2], 2), 
+    # Formatting P-value for academic reporting
+    P_Val = format.pval(res$`Pr(>Chisq)`[2], eps = 0.001, digits = 3)
+  )
 })
-print(kable(do.call(rbind, results_anova), digits=2))
+
+# Display the table using kable for a professional look
+print(kable(do.call(rbind, results_anova), 
+            align = "c", 
+            caption = "Model Comparison Metrics per Scenario "))
 
 # 2. Monte Carlo Simulation
 cat("\n--- Monte Carlo Simulation (10 Iterations) ---\n")
