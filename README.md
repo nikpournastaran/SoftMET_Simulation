@@ -16,9 +16,22 @@ We evaluated the model across three distinct Data Generating Processes (DGP):
 * **Scenario 2:** Quasi-linear with threshold interactions (Threshold logic).
 * **Scenario 3:** Complex non-linearities (Quadratic and Logarithmic interactions).
 
-## 4. Key Results (Monte Carlo Evidence)
+## 4. Key Results 
 The simulation was conducted over multiple iterations to ensure the stability of the results. 
+## 4. Empirical Results
 
+### 4.1. Statistical Validation (Single Run ANOVA)
+To verify the model's adequacy, we performed a Likelihood Ratio Test comparing the baseline LMM with SoftMET. The results confirm that SoftMET significantly improves the model fit, especially in non-linear scenarios.
+
+**Table 1: Model Comparison Metrics per Scenario (Single Realization)**
+
+| Scenario | AIC_Base | AIC_Soft | BIC_Soft | LogLik_Soft | P_Val |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 1 | 1612.21 | 1581.39 | 1648.83 | -774.70 | < 0.001 |
+| 2 | 2107.03 | 1625.32 | 1692.75 | -796.66 | < 0.001 |
+| 3 | 2715.74 | 2100.65 | 2168.09 | -1034.33 | < 0.001 |
+
+> **Note:** The lower AIC and BIC values for SoftMET across all scenarios indicate superior model selection, even when accounting for the increased number of parameters.
 ### Performance Summary Table
 | Scenario | Statistical Power | MSE (Classic LMM) | MSE (SoftMET) | Improvement (%) |
 | :--- | :---: | :---: | :---: | :---: |
