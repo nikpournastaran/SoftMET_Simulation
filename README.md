@@ -16,8 +16,7 @@ We evaluated the model across three distinct Data Generating Processes (DGP):
 * **Scenario 2:** Quasi-linear with threshold interactions (Threshold logic).
 * **Scenario 3:** Complex non-linearities (Quadratic and Logarithmic interactions).
 
-## 4. Key Results 
-The simulation was conducted over multiple iterations to ensure the stability of the results. 
+
 ## 4. Empirical Results
 
 ### 4.1. Statistical Validation (Single Run ANOVA)
