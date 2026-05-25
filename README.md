@@ -1,4 +1,4 @@
-# SoftMET: Soft-membership Mixed Effects Trees
+# SoftMET: Soft Mixed Effects Trees
 
 This repository contains the implementation and simulation study of the **SoftMET** algorithm. This approach integrates attention-based soft-partitioning within a 3-Trees mixed-effects framework to capture complex non-linearities in clustered data.
 
