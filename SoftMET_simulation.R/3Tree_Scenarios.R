@@ -17,19 +17,29 @@ get_pi <- function(H, th) {
 # Update routing parameters using BFGS
 upd_tree <- function(Y, H, th, n_l) {
   p_ncol <- ncol(H)
+  
   get_mu <- function(p) { 
     m <- coef(lm(Y ~ p[, -1, drop = FALSE]))
     m[is.na(m)] <- 0
     return(as.numeric(m))
   }
+  
   obj <- function(v) {
     p <- get_pi(H, matrix(v, nrow = n_l, ncol = p_ncol, byrow = TRUE))
     m <- get_mu(p)
     yh <- m[1] + p[, -1, drop = FALSE] %*% m[-1]
     mean((Y - yh)^2)
   }
+  
   opt <- optim(as.vector(t(th)), obj, method = "BFGS", control = list(maxit = 30))
-  return(list(th = matrix(opt$par, nrow = n_l, ncol = p_ncol, byrow = TRUE)))
+  
+  # Final Prediction
+  final_p <- get_pi(H, matrix(opt$par, nrow = n_l, ncol = p_ncol, byrow = TRUE))
+  final_m <- get_mu(final_p)
+  yhat <- final_m[1] + final_p[, -1, drop = FALSE] %*% final_m[-1]
+  
+  return(list(th = matrix(opt$par, nrow = n_l, ncol = p_ncol, byrow = TRUE),
+              yhat = as.numeric(yhat)))
 }
 
 #  Data Generation
