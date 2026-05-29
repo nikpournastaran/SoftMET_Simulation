@@ -93,7 +93,7 @@ softmet_3trees <- function(d,
   mse.best <- 1e8
   mse.train <- 1e8
   t <- 0
-  best_th1 <- th1; best_th2 <- th2; best_th3 <- th3   # مقداردهی اولیه
+  best_th1 <- th1; best_th2 <- th2; best_th3 <- th3 
   
   # Backfitting Loop
   while (t < niter) {
