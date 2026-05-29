@@ -97,7 +97,7 @@ softmet_3trees <- function(d,
   
   best_th1 <- best_th2 <- best_th3 <- NULL
   
-  # Backfitting Loop (مطابق درخواست استاد)
+  # Backfitting Loop 
   while (d_conv != 0) {
     mse.train_old <- mse.train
     Y_residuals <- Y - YhatL - YhatT1 - YhatT2 - YhatT3
