@@ -71,66 +71,65 @@ softmet_3trees <- function(d,
                            niter = 50,
                            prec = 1e-4,
                            covLin = c("X1", "X2", "Z1", "Z2"),
-                           covT1  = c("X1", "X2"),
-                           covT2  = c("Z1", "Z2"),
-                           covT3  = c("X1", "X2", "Z1", "Z2")) {
-  
+                           covT1 = c("X1", "X2"),
+                           covT2 = c("Z1", "Z2"),
+                           covT3 = c("X1", "X2", "Z1", "Z2")) {
+ 
   Y <- d$Y
   gr <- d$gr
-  
+ 
   XT1 <- as.matrix(d[, covT1, drop = FALSE])
   XT2 <- as.matrix(d[, covT2, drop = FALSE])
   XT3 <- as.matrix(d[, covT3, drop = FALSE])
-  
+ 
   # Initialization
-  YhatL  <- predict(lm(as.formula(paste("Y ~", paste(covLin, collapse = "+"))), data = d))
+  YhatL <- predict(lm(as.formula(paste("Y ~", paste(covLin, collapse = "+"))), data = d))
   YhatT1 <- YhatT2 <- YhatT3 <- mean(Y) / 3
-  
+ 
   th1 <- matrix(runif(n_leaves * ncol(XT1), -0.1, 0.1), nrow = n_leaves)
   th2 <- matrix(runif(n_leaves * ncol(XT2), -0.1, 0.1), nrow = n_leaves)
   th3 <- matrix(runif(n_leaves * ncol(XT3), -0.1, 0.1), nrow = n_leaves)
-  
+ 
   mse.best <- 1e8
   mse.train <- 1e8
   t <- 0
-  d_conv <- 1
+  best_th1 <- th1; best_th2 <- th2; best_th3 <- th3   # مقداردهی اولیه
   
-  best_th1 <- best_th2 <- best_th3 <- NULL
-  
-  # Backfitting Loop 
-  while (d_conv != 0) {
+  # Backfitting Loop
+  while (t < niter) {
     mse.train_old <- mse.train
     Y_residuals <- Y - YhatL - YhatT1 - YhatT2 - YhatT3
-    
+   
     # 1. Linear
     Y_pres <- Y_residuals + YhatL
     form_lin <- as.formula(paste("Y_pres ~", paste(covLin, collapse = "+"), "+ (1|gr)"))
     mod_l <- lmer(form_lin, data = d, REML = FALSE)
     YhatL <- fitted(mod_l)
-    
+   
     # 2. Tree 1
     Y_pres <- Y_pres - YhatL + YhatT1
     tr1 <- upd_tree(Y_pres, XT1, th1, n_leaves)
     th1 <- tr1$th
     YhatT1 <- tr1$yhat
-    
+   
     # 3. Tree 2
     Y_pres <- Y_pres - YhatT1 + YhatT2
     tr2 <- upd_tree(Y_pres, XT2, th2, n_leaves)
     th2 <- tr2$th
     YhatT2 <- tr2$yhat
-    
+   
     # 4. Tree 3
     Y_pres <- Y_pres - YhatT2 + YhatT3
     tr3 <- upd_tree(Y_pres, XT3, th3, n_leaves)
     th3 <- tr3$th
     YhatT3 <- tr3$yhat
-    
+   
     pred.final <- YhatL + YhatT1 + YhatT2 + YhatT3
     mse.train <- mean((Y - pred.final)^2)
-    
+   
     t <- t + 1
-    d_conv <- (abs(mse.train_old - mse.train) > prec) * (t < niter)
+    
+    if (abs(mse.train_old - mse.train) <= prec) break
     
     if (mse.train < mse.best) {
       mse.best <- mse.train
@@ -139,24 +138,25 @@ softmet_3trees <- function(d,
       best_th3 <- th3
     }
   }
-  
+ 
   # Stage 2
   Phi1 <- get_pi(XT1, best_th1)[, -1, drop = FALSE]
   Phi2 <- get_pi(XT2, best_th2)[, -1, drop = FALSE]
   Phi3 <- get_pi(XT3, best_th3)[, -1, drop = FALSE]
-  
+ 
   df_fin <- cbind(d, Phi1, Phi2, Phi3)
   n_basis <- ncol(Phi1) + ncol(Phi2) + ncol(Phi3)
   colnames(df_fin)[(ncol(d)+1):ncol(df_fin)] <- paste0("Basis_", 1:n_basis)
   basis_names <- colnames(df_fin)[(ncol(d)+1):ncol(df_fin)]
-  
-  m_base <- lmer(Y ~ X1 + X2 + Z1 + Z2 + (1|gr), data = df_fin, REML = FALSE)
-  
-  f_soft <- as.formula(paste("Y ~", paste(covLin, collapse = "+"), 
-                             "+", paste(basis_names, collapse = " + "), 
+ 
+  m_base <- lmer(as.formula(paste("Y ~", paste(covLin, collapse = "+"), "+ (1|gr)")), 
+                 data = df_fin, REML = FALSE)
+ 
+  f_soft <- as.formula(paste("Y ~", paste(covLin, collapse = "+"),
+                             "+", paste(basis_names, collapse = " + "),
                              "+ (1|gr)"))
   m_soft <- lmer(f_soft, data = df_fin, REML = FALSE)
-  
+ 
   return(list(base = m_base, soft = m_soft, mse.best = mse.best, niter = t))
 }
 
