@@ -180,31 +180,40 @@ softmet_3trees <- function(d,
               best_th3 = best_th3))
 
 # 5. Simulation
+cat("\n Running Official Monte Carlo Simulation (100 Reps) \n")
 
-> cat("\n Running Official Monte Carlo Simulation (100 Reps) \n")
+n_mc <- 100
 
-> mc_results <- lapply(1:3, function(sc) {
-+     mse_b <- mse_s <- sig <- numeric(100) 
-+     
-+     for(i in 1:100) {
-+         sets <- gen_data_split(scenario = sc)
-+         f <- softmet_3trees(sets$train, sets$test)
-+         
-+         # Predict on test data using fixed effects only (re.form = ~0)
-+         yhat_test_base <- predict(f$base, newdata = f$test_data, re.form = ~0)
-+         yhat_test_soft <- predict(f$soft, newdata = f$test_data, re.form = ~0)
-+         
-+         # Calculate Test MSE
-+         mse_b[i] <- mean((f$test_data$Y - yhat_test_base)^2)
-+         mse_s[i] <- mean((f$test_data$Y - yhat_test_soft)^2)
-+         
-+         # Statistical significance verification
-+         sig[i] <- anova(f$base, f$soft)$`Pr(>Chisq)`[2] < 0.05
-+     }
-+     
-+     data.frame(Scenario = sc, 
-+                Power = mean(sig), 
-+                Test_MSE_Base = mean(mse_b), 
-+                Test_MSE_Soft = mean(mse_s), 
-+                Improvement = mean(mse_b - mse_s))
+mc_results <- lapply(1:3, function(sc) {
+  mse_b <- mse_s <- sig <- numeric(n_mc)
+  
+  for(i in 1:n_mc) {
+    dat   <- gen_data(scenario = sc)     
+    train <- dat$train
+    test  <- dat$test
+    
+    f <- softmet_3trees(train)           
+    
+    # Prediction on test set
+    yhat_test_base <- predict(f$base, newdata = test, re.form = ~0)
+    yhat_test_soft <- predict(f$soft, newdata = test, re.form = ~0)
+    
+    mse_b[i] <- mean((test$Y - yhat_test_base)^2)
+    mse_s[i] <- mean((test$Y - yhat_test_soft)^2)
+    
+    anova_res <- anova(f$base, f$soft)
+    sig[i]    <- anova_res$`Pr(>Chisq)`[2] < 0.05
+  }
+  
+  data.frame(
+    Scenario      = sc,
+    Power         = mean(sig),
+    Test_MSE_Base = mean(mse_b),
+    Test_MSE_Soft = mean(mse_s),
+    Improvement   = mean(mse_b - mse_s)
+  )
+})
+
+print(kable(do.call(rbind, mc_results), digits = 4,
+            caption = "SoftMET vs Baseline - Test Set Performance (100 MC Replications)"))
 + })
