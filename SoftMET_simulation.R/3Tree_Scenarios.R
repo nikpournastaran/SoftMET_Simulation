@@ -190,41 +190,32 @@ softmet_3trees <- function(d,
 + }
 
 
-# 5. Evaluation
+# 5. Simulation
 
-cat("\n--- Single Run ANOVA Detailed Comparison ---\n")
-results_anova <- lapply(1:3, function(sc) {
-  fit <- softmet_3trees(gen_data(scenario = sc))
-  res <- anova(fit$base, fit$soft)
-  
-  data.frame(
-    Scenario = sc,
-    AIC_Base = round(res$AIC[1], 2),
-    AIC_Soft = round(res$AIC[2], 2),
-    BIC_Soft = round(res$BIC[2], 2),
-    LogLik_Soft = round(res$logLik[2], 2),
-    P_Val = format.pval(res$`Pr(>Chisq)`[2], eps = 0.001, digits = 3)
-  )
-})
+> cat("\n Running Official Monte Carlo Simulation (100 Reps) \n")
 
-print(kable(do.call(rbind, results_anova),
-            align = "c",
-            caption = "Model Comparison Metrics per Scenario "))
-
-cat("\n--- Monte Carlo Simulation (10 Iterations) ---\n")
-mc_bench <- lapply(1:3, function(sc) {
-  mse_b <- mse_s <- sig <- numeric(10)
-  for(i in 1:10) {
-    f <- softmet_3trees(gen_data(scenario = sc))
-    mse_b[i] <- mean(residuals(f$base)^2)
-    mse_s[i] <- mean(residuals(f$soft)^2)
-    sig[i]   <- anova(f$base, f$soft)$`Pr(>Chisq)`[2] < 0.05
-  }
-  data.frame(Scenario = sc, 
-             Power = mean(sig), 
-             MSE_Base = mean(mse_b), 
-             MSE_Soft = mean(mse_s), 
-             Imp = mean(mse_b - mse_s))
-})
-
-print(kable(do.call(rbind, mc_bench), digits = 3))
+> mc_results <- lapply(1:3, function(sc) {
++     mse_b <- mse_s <- sig <- numeric(100) 
++     
++     for(i in 1:100) {
++         sets <- gen_data_split(scenario = sc)
++         f <- softmet_3trees(sets$train, sets$test)
++         
++         # Predict on test data using fixed effects only (re.form = ~0)
++         yhat_test_base <- predict(f$base, newdata = f$test_data, re.form = ~0)
++         yhat_test_soft <- predict(f$soft, newdata = f$test_data, re.form = ~0)
++         
++         # Calculate Test MSE
++         mse_b[i] <- mean((f$test_data$Y - yhat_test_base)^2)
++         mse_s[i] <- mean((f$test_data$Y - yhat_test_soft)^2)
++         
++         # Statistical significance verification
++         sig[i] <- anova(f$base, f$soft)$`Pr(>Chisq)`[2] < 0.05
++     }
++     
++     data.frame(Scenario = sc, 
++                Power = mean(sig), 
++                Test_MSE_Base = mean(mse_b), 
++                Test_MSE_Soft = mean(mse_s), 
++                Improvement = mean(mse_b - mse_s))
++ })
