@@ -150,25 +150,44 @@ softmet_3trees <- function(d,
     }
   }
   
-  # Stage 2
-  Phi1 <- get_pi(XT1, best_th1)[, -1, drop = FALSE]
-  Phi2 <- get_pi(XT2, best_th2)[, -1, drop = FALSE]
-  Phi3 <- get_pi(XT3, best_th3)[, -1, drop = FALSE]
-  
-  df_fin <- cbind(d, Phi1, Phi2, Phi3)
-  n_basis <- ncol(Phi1) + ncol(Phi2) + ncol(Phi3)
-  colnames(df_fin)[(ncol(d)+1):ncol(df_fin)] <- paste0("Basis_", 1:n_basis)
-  basis_names <- colnames(df_fin)[(ncol(d)+1):ncol(df_fin)]
-  
-  m_base <- lmer(Y ~ X1 + X2 + Z1 + Z2 + (1|gr), data = df_fin, REML = FALSE)
-  
-  f_soft <- as.formula(paste("Y ~", paste(covLin, collapse = "+"), 
-                             "+", paste(basis_names, collapse = " + "), 
-                             "+ (1|gr)"))
-  m_soft <- lmer(f_soft, data = df_fin, REML = FALSE)
-  
-  return(list(base = m_base, soft = m_soft, mse.best = mse.best, niter = t))
-}
+  # Stage 2: Construct basis functions for train data
++     Phi1_tr <- as.data.frame(get_pi(XT1_tr, best_th1)[, -1, drop = FALSE])
++     Phi2_tr <- as.data.frame(get_pi(XT2_tr, best_th2)[, -1, drop = FALSE])
++     Phi3_tr <- as.data.frame(get_pi(XT3_tr, best_th3)[, -1, drop = FALSE])
++     
++     # Informative column names 
++     colnames(Phi1_tr) <- paste0("T1_leaf", 2:(ncol(Phi1_tr)+1))
++     colnames(Phi2_tr) <- paste0("T2_leaf", 2:(ncol(Phi2_tr)+1))
++     colnames(Phi3_tr) <- paste0("T3_leaf", 2:(ncol(Phi3_tr)+1))
++     
++     df_fin_tr <- cbind(d_train, Phi1_tr, Phi2_tr, Phi3_tr)
++     basis_names <- c(colnames(Phi1_tr), colnames(Phi2_tr), colnames(Phi3_tr))
++     
++     # Fit final models on training data
++     m_base <- lmer(Y ~ X1 + X2 + Z1 + Z2 + (1|gr), data = df_fin_tr, REML = FALSE)
++     
++     f_soft <- as.formula(paste("Y ~", paste(covLin, collapse = "+"), 
++                                "+", paste(basis_names, collapse = " + "), 
++                                "+ (1|gr)"))
++     m_soft <- lmer(f_soft, data = df_fin_tr, REML = FALSE)
++     
++     # Process test data using the optimized train routing parameters
++     XT1_te <- as.matrix(d_test[, covT1, drop = FALSE])
++     XT2_te <- as.matrix(d_test[, covT2, drop = FALSE])
++     XT3_te <- as.matrix(d_test[, covT3, drop = FALSE])
++     
++     Phi1_te <- as.data.frame(get_pi(XT1_te, best_th1)[, -1, drop = FALSE])
++     Phi2_te <- as.data.frame(get_pi(XT2_te, best_th2)[, -1, drop = FALSE])
++     Phi3_te <- as.data.frame(get_pi(XT3_te, best_th3)[, -1, drop = FALSE])
++     
++     colnames(Phi1_te) <- colnames(Phi1_tr)
++     colnames(Phi2_te) <- colnames(Phi2_tr)
++     colnames(Phi3_te) <- colnames(Phi3_tr)
++     
++     df_fin_te <- cbind(d_test, Phi1_te, Phi2_te, Phi3_te)
++     
++     return(list(base = m_base, soft = m_soft, test_data = df_fin_te))
++ }
 
 
 # 5. Evaluation
