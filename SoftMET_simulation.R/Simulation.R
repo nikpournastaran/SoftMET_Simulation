@@ -166,7 +166,7 @@ library(lme4)
  # 5. Simulation 
  cat("\n Running Monte Carlo Simulation (100 Reps) \n")
 
- Running Monte Carlo Simulation (100 Reps) 
+
  
 # For quick test use n_mc <- 5 or 10, set to 100 for final results
  n_mc <- 10 
