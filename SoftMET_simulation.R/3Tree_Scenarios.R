@@ -153,25 +153,17 @@ softmet_3trees <- function(d,
   Phi2 <- get_pi(XT2, best_th2)
   Phi3 <- get_pi(XT3, best_th3)
   
-  # Informative column names 
+ 
   colnames(Phi1) <- paste0("T1_leaf", 2:ncol(Phi1))
   colnames(Phi2) <- paste0("T2_leaf", 2:ncol(Phi2))
   colnames(Phi3) <- paste0("T3_leaf", 2:ncol(Phi3))
   
-  # Basis functions 
   Phi_basis <- cbind(Phi1[, -1, drop = FALSE],
                      Phi2[, -1, drop = FALSE],
                      Phi3[, -1, drop = FALSE])
   
   df_fin <- cbind(d, Phi_basis)
   basis_names <- colnames(Phi_basis)
-  
-  # Final Models
-  m_base <- lmer(Y ~ X1 + X2 + Z1 + Z2 + (1|gr), data = df_fin, REML = FALSE)
-  
-  formula_str <- paste0("Y ~ ", paste(c(covLin, basis_names), collapse = " + "), " + (1|gr)")
-  f_soft <- as.formula(formula_str)
-  m_soft <- lmer(f_soft, data = df_fin, REML = FALSE)
   
   return(list(base = m_base, 
               soft = m_soft, 
