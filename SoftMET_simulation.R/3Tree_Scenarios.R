@@ -178,6 +178,7 @@ softmet_3trees <- function(d,
               best_th1 = best_th1,
               best_th2 = best_th2,
               best_th3 = best_th3))
+  }
 
 # 5. Simulation
 cat("\n Running Monte Carlo Simulation (100 Reps) \n")
