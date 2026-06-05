@@ -177,7 +177,7 @@ softmet_3trees <- function(d,
               soft = m_soft, 
               best_th1 = best_th1,
               best_th2 = best_th2,
-              best_th3 = best_th3))
+              best_th3 = best_th3))}
 
 # 5. Simulation
 cat("\n Running Official Monte Carlo Simulation (100 Reps) \n")
@@ -216,4 +216,4 @@ mc_results <- lapply(1:3, function(sc) {
 
 print(kable(do.call(rbind, mc_results), digits = 4,
             caption = "SoftMET vs Baseline - Test Set Performance (100 MC Replications)"))
-+ })
+})
