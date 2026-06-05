@@ -45,24 +45,34 @@ upd_tree <- function(Y, H, th, n_l) {
 }
 
 # 3. Data Generation
-gen_data <- function(n = 500, g = 50, scenario = 1) {
-  gr <- factor(rep(1:g, each = n/g))
-  Sigma <- matrix(c(1.0, 0.4, 0.4, 1.0), 2, 2)
-  
-  X <- mvrnorm(n, mu = c(0, 0), Sigma = Sigma)
-  Z_unique <- mvrnorm(g, mu = c(0, 0), Sigma = Sigma)
-  
-  X1 <- X[,1]; X2 <- X[,2]
-  Z1 <- Z_unique[gr, 1]; Z2 <- Z_unique[gr, 2]
-  u_j <- rnorm(g, 0, sqrt(3))[gr]
-  eps <- rnorm(n, 0, 1)
-  
-  if(scenario == 1) Y <- 5 + X1 + Z1 + u_j + eps
-  if(scenario == 2) Y <- 5 + X1 + Z1 + 2*(X1>=0) + 3*(Z2<0) - 3*(X1<0 & Z2>=0) + u_j + eps
-  if(scenario == 3) Y <- 2*X1 + 4*Z1 + 2*X2^2 + 2*Z1*log(abs(X1)+0.01) + u_j + eps
-  
-  return(data.frame(Y, X1, X2, Z1, Z2, gr))
-}
+
+> # separate train and test datasets
+> gen_data_split <- function(scenario = 1) {
++     g <- 50
++     n_j <- 15
++     n <- g * n_j
++     
++     generate_single_set <- function() {
++         gr <- factor(rep(1:g, each = n_j))
++         Sigma <- matrix(c(1.0, 0.4, 0.4, 1.0), 2, 2)
++         
++         X <- mvrnorm(n, mu = c(0, 0), Sigma = Sigma)
++         Z_unique <- mvrnorm(g, mu = c(0, 0), Sigma = Sigma)
++         
++         X1 <- X[,1]; X2 <- X[,2]
++         Z1 <- Z_unique[gr, 1]; Z2 <- Z_unique[gr, 2]
++         u_j <- rnorm(g, 0, sqrt(3))[gr]
++         eps <- rnorm(n, 0, 1)
++         
++         if(scenario == 1) Y <- 5 + X1 + Z1 + u_j + eps
++         if(scenario == 2) Y <- 5 + X1 + Z1 + 2*(X1>=0) + 3*(Z2<0) - 3*(X1<0 & Z2>=0) + u_j + eps
++         if(scenario == 3) Y <- 2*X1 + 4*Z1 + 2*X2^2 + 2*Z1*log(abs(X1)+0.01) + u_j + eps
++         
++         return(data.frame(Y, X1, X2, Z1, Z2, gr))
++     }
++     
++     return(list(train = generate_single_set(), test = generate_single_set()))
++ }
 
 
 # 4. Main SoftMET Function 
